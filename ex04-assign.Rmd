@@ -1,0 +1,273 @@
+---
+title: "Übung 04"
+author: "Algorithmik und Statistik 2 LAB, SS2019"
+date: 'Bis: Sonntag, 23. Juni 2019, 23:59 Uhr'
+urlcolor: cyan
+---
+
+```{r options, include = FALSE}
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+Bitte um Beachtung der [Übungs-Policy](https://weblearn.fh-kufstein.ac.at/mod/page/view.php?id=46374) für genaue Anweisungen und einige Beurteilungsnotizen. Fehler bei der Einhaltung ergeben Punktabzug.
+
+
+## Aufgabe 1
+
+**[10 points]** Für diese Frage verwenden wir die `OJ`Daten aus dem `ISLR`-Paket. Wir werden versuchen, die Variable "Purchase" vorherzusagen. Nachdem Sie `uin` zu Ihrem `UIN` geändert haben, verwenden Sie den folgenden Code, um die Daten aufzuteilen.
+
+```{r, message = FALSE, warning = FALSE}
+library(ISLR)
+library(caret)
+library(MLmetrics)
+uin = 1810837995
+set.seed(uin)
+oj_idx = createDataPartition(OJ$Purchase, p = 0.5, list = FALSE)
+oj_trn = OJ[oj_idx,]
+oj_tst = OJ[-oj_idx,]
+```
+
+**(a)** Stimmen Sie ein SVM mit linearem Kernel mit 5-facher Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende Wertgitter für `C`. Berichten Sie die gewählten Werte aller Tuningparameter + Testgenauigkeit.
+
+```{r}
+lin_grid = expand.grid(C = c(2 ^ (-5:5)))
+
+
+#sapply(x,summary)
+
+ctrl <- trainControl(method="repeatedcv",
+                     repeats=5,	
+                     summaryFunction=twoClassSummary,
+                     classProbs=TRUE)
+
+
+svm.tune1 <- train(Purchase~.,data=oj_trn,
+                    method = "svmLinear",
+                    preProc = c("center","scale"),
+                    tuneGrid = lin_grid,
+                    metric="ROC",
+                    trControl=ctrl)	
+
+PredictTest1 = predict(svm.tune1,oj_tst)
+
+#Testgenauigkeit
+confusionMatrix(PredictTest1,oj_tst$Purchase)
+
+#Tuningparameter
+svm.tune1
+
+Accurarcy(PredictTest1, oj_tst$Purchase)
+```
+```{r}
+#Da der Tuningparameter auf den Rand geht, erweitern wir den Bereich nach unten:
+lin_grid = expand.grid(C = c(2 ^ (-10:1)))
+
+ctrl <- trainControl(method="repeatedcv",
+                     repeats=5,	
+                     summaryFunction=twoClassSummary,
+                     classProbs=TRUE)
+
+
+svm.tune2 <- train(Purchase~.,data=oj_trn,
+                    method = "svmLinear",
+                    preProc = c("center","scale"),
+                    tuneGrid = lin_grid,
+                    metric="ROC",
+                    trControl=ctrl)	
+
+PredictTest2 = predict(svm.tune2,oj_tst)
+
+#Testgenauigkeit
+confusionMatrix(PredictTest2,oj_tst$Purchase)
+
+#Tuningparameter
+svm.tune2
+```
+
+
+
+**(b)** Abstimmung eines SVM mit Polynomkern auf die Trainingsdaten mittels 5-facher Cross-Validierung. Geben Sie kein Tuning-Grid an. (`caret` wird einen für Sie erstellen.) Berichten Sie die gewählten Werte aller Tuning-Parameter. Berichten Sie über die Genauigkeit der Testdaten.
+```{r}
+
+ctrl <- trainControl(method="repeatedcv",
+                     repeats=5,	
+                     summaryFunction=twoClassSummary,
+                     classProbs=TRUE)
+
+
+svm.tune3 <- train(Purchase~.,data=oj_trn,
+                    method = "svmPoly",
+                    preProc = c("center","scale"),
+                    metric="ROC",
+                    trControl=ctrl)	
+
+PredictTest3 = predict(svm.tune3,oj_tst)
+
+#Testgenauigkeit
+confusionMatrix(PredictTest3,oj_tst$Purchase)
+
+#Tuningparameter
+svm.tune3
+```
+
+
+
+**(c)** Stimmen Sie ein SVM mit Radialkernel mit 5-facher Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende Wertgitter für `C` und `sigma`. Berichten Sie die gewählten Werte aller Tuningparameter. Berichten Sie über die Genauigkeit der Testdaten. 
+
+```{r}
+rad_grid = expand.grid(C = c(2 ^ (-2:3)), sigma  = c(2 ^ (-3:1)))
+
+ctrl <- trainControl(method="repeatedcv",
+                     repeats=5,	
+                     summaryFunction=twoClassSummary,
+                     classProbs=TRUE)
+
+
+svm.tune4 <- train(Purchase~.,data=oj_trn,
+                    method = "svmRadial",
+                    preProc = c("center","scale"),
+                    tuneGrid = rad_grid,
+                    metric="ROC",
+                    trControl=ctrl)	
+
+PredictTest4 = predict(svm.tune4,oj_tst)
+
+#Testgenauigkeit
+confusionMatrix(PredictTest4,oj_tst$Purchase)
+
+#Tuningparameter
+svm.tune4
+```
+
+**(d)** Stimmen Sie einen Random Forest mit einer 5-fachen Kreuzvalidierung ab. Berichten Sie die gewählten Werte aller Tuningparameter. Berichten Sie über die Genauigkeit der Testdaten.
+```{r}
+ctrl <- trainControl(method="repeatedcv",
+                     repeats=5,	
+                     summaryFunction=twoClassSummary,
+                     classProbs=TRUE)
+
+
+rf.tune <- train(Purchase~.,data=oj_trn,
+                    method = "rf",
+                    preProc = c("center","scale"),
+                    metric="ROC",
+                    trControl=ctrl)	
+
+PredictTest5 = predict(rf.tune,oj_tst)
+
+#Testgenauigkeit
+confusionMatrix(PredictTest5,oj_tst$Purchase)
+
+#Tuningparameter
+rf.tune
+```
+
+**(e)** Fassen Sie die obigen Genauigkeiten zusammen. Welche Methode hat am besten funktioniert? Warum?
+```{r}
+Genauigkeiten <- data.frame(
+  GenauigkeitenName = c('SVM with Linear Kernel','VM with Polynomial Kernel','VM with Radial Kernel','Random Forest'), GenauigkeitenWerte = c(Accuracy(PredictTest1, oj_tst$Purchase), Accuracy(PredictTest3, oj_tst$Purchase), Accuracy(PredictTest4, oj_tst$Purchase),Accuracy(PredictTest5, oj_tst$Purchase)))
+
+Genauigkeiten
+
+```
+
+
+# Aufgabe 2
+
+**[10 points]** Verwenden Sie für diese Frage die Daten in `clust_data.csv`. Wir werden versuchen, diese Daten mit $k$-means zu bündeln. Aber, welche $k$ sollen wir verwenden?
+```{r}
+clust = read.csv('clust_data.csv')
+str(clust)
+```
+
+
+**(a)** Wenden Sie $k$-means 15 mal auf diese Daten an, wobei Sie die Anzahl der Zentren von 1 bis 15 verwenden. Verwenden Sie jedes Mal `nstart = 10` und speichern Sie den Wert `tot.withinss` aus dem resultierenden Objekt. (Hinweis: Schreiben Sie eine for-Schleife.) Die `tot.withinss` misst, wie variabel die Beobachtungen innerhalb eines Clusters sind, das wir gerne niedrig halten würden. Offensichtlich wird dieser Wert also mit mehr Zentren niedriger sein, egal wie viele Cluster es wirklich gibt. Zeichne diesen Wert gegen die Anzahl der Zentren auf. Suchen Sie nach einem "Ellenbogen", der Anzahl der Zentren, in denen die Verbesserung plötzlich wegfällt. Basierend auf dieser Darstellung, wie viele Cluster sollten Ihrer Meinung nach für diese Daten verwendet werden?
+```{r}
+mydata = data.frame(Centers = NA, Withinss=NA)
+
+for (i in 1:15){
+clusters <- kmeans(clust, centers=i, nstart=10)
+mydata[i,2] <- clusters$tot.withinss
+mydata[i,1] <- i
+}
+
+plot(mydata)
+# Hinweis, wie man Daten clustern könnte - Domainen-Wissen fehlt aber.
+# cluster mit 4 center vorteilhaft, also in der Beuge. Nur hinweis auf mögliche Cluster
+```
+
+**(b)** Wenden Sie $k$-means für die von Ihnen gewählte Anzahl von Zentren erneut an. Wie viele Beobachtungen werden in jedem Cluster platziert? Was ist der Wert von `tot.withinss`?
+```{r}
+km.out = kmeans(clust,centers=4,nstart=10)
+km.out$withinss
+plot(km.out$withinss)
+km.out$tot.withinss
+```
+**(c)** Visualisieren Sie diese Daten. Plotten Sie die Daten mit den ersten beiden Variablen und färben Sie die Punkte entsprechend des $k$-means clusterings. Basierend auf diesem Plot, denken Sie, dass Sie eine gute Wahl für die Anzahl der Zentren getroffen haben? (Kurze Erklärung.)
+```{r}
+ggplot(data.frame(clust), aes(clust[,1], clust[,2], color = km.out$cluster)) + geom_point()
+```
+**(d)** Verwenden Sie PCA, um diese Daten zu visualisieren. Plotten Sie die Daten mit den ersten beiden Hauptkomponenten und färben Sie die Punkte entsprechend dem $k$-means Clustering. Basierend auf diesem Plot, denken Sie, dass Sie eine gute Wahl für die Anzahl der Zentren getroffen haben? (Kurze Erklärung.)
+```{r}
+clust.pca <- prcomp(clust,
+                    center = TRUE,
+                    scale = TRUE)
+
+plot(clust.pca, type = "l")
+predict(clust.pca, newdata = tail(clust,2))
+
+plot(clust.pca$x[,1:2], col = km.out$cluster)
+
+ggplot(data.frame(clust), aes(clust.pca$x[,1], clust.pca$x[,2], color = km.out$cluster)) + geom_point()
+```
+**(e)** Berechnen Sie den Anteil der Variation, der durch die Hauptkomponenten erklärt wird. Machen Sie eine Darstellung des kumulierten Anteils erklärt. Wie viele Hauptkomponenten sind notwendig, um 95% der Variation der Daten zu erklären?
+```{r}
+summary(clust.pca)
+```
+
+
+
+# Aufgabe 3
+
+**[10 points]** Für diese Frage werden wir auf die `USArrests` Daten aus den Notizen zurückkommen. (Dies ist ein Standarddatensatz von `R`.)
+```{r}
+USArrests
+```
+**(a)** Führen Sie hierarchisches Clustering sechsmal durch. Berücksichtigen Sie alle möglichen Kombinationen von Verknüpfungen (Average, Single, Complete) und Datenskalierung. (Skaliert, Nicht skaliert.)
+
+| Linkage  | Scaling |
+|----------|---------|
+| Single   | No      |
+| Average  | No      |
+| Complete | No      |
+| Single   | Yes     |
+| Average  | Yes     |
+| Complete | Yes     |
+
+Schneiden Sie das Dendrogramm jedes Mal auf eine Höhe, die zu vier verschiedenen Clustern führt. Plotten Sie die Ergebnisse mit einer Farbe für jeden Cluster.
+```{r}
+x = USArrests
+#standardize <- function(x){(x-min(x))/(max(x)-min(x))}
+scale(x)
+str(x)
+
+dist_mat <- dist(x, method = 'euclidean')
+hclust_avg <- hclust(dist_mat, method = 'average')
+
+cut_avg <- cutree(hclust_avg, k = 4)
+plot(hclust_avg)
+rect.hclust(hclust_avg, k=4)
+abline(h = 3, col = 'red')
+```
+**(b)** Basierend auf den obigen Plots, erscheint eines der Ergebnisse nützlicher als die anderen? (Es gibt hier keine richtige Antwort.) Wählen Sie Ihren Favoriten. (Nochmals, keine richtige Antwort.)
+```{r}
+
+```
+**(c)** Verwenden Sie die Dokumentation zu `?hclust`, um weitere mögliche Verknüpfungen zu finden. Such dir einen aus und probiere ihn aus. Vergleichen Sie die Ergebnisse mit Ihren Favoriten von **(b)**. Ist es anders?
+```{r}
+
+```
+**(d)** Verwenden Sie die Dokumentation zu `?dist`, um andere mögliche Entfernungsmessungen zu finden. (Wir haben `euklidisch` verwendet.) Wählen Sie eine (nicht `binär`) und versuchen Sie es. Vergleichen Sie die Ergebnisse mit Ihren Favoriten von **(b)**. Ist es anders?
+```{r}
+
+```

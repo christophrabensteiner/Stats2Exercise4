@@ -1,0 +1,286 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\PassOptionsToPackage{usenames,dvipsnames}{color} % color is loaded by hyperref
+\hypersetup{unicode=true,
+            pdftitle={Übung 04},
+            pdfauthor={Algorithmik und Statistik 2 LAB, SS2019},
+            colorlinks=true,
+            linkcolor=Maroon,
+            citecolor=Blue,
+            urlcolor=cyan,
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\providecommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Übung 04}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Algorithmik und Statistik 2 LAB, SS2019}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{Bis: Sonntag, 23. Juni 2019, 23:59 Uhr}
+
+
+\begin{document}
+\maketitle
+
+Bitte um Beachtung der
+\href{https://weblearn.fh-kufstein.ac.at/mod/page/view.php?id=46374}{Übungs-Policy}
+für genaue Anweisungen und einige Beurteilungsnotizen. Fehler bei der
+Einhaltung ergeben Punktabzug.
+
+\hypertarget{aufgabe-1}{%
+\subsection{Aufgabe 1}\label{aufgabe-1}}
+
+\textbf{{[}10 points{]}} Für diese Frage verwenden wir die
+\texttt{OJ}Daten aus dem \texttt{ISLR}-Paket. Wir werden versuchen, die
+Variable ``Purchase'' vorherzusagen. Nachdem Sie \texttt{uin} zu Ihrem
+\texttt{UIN} geändert haben, verwenden Sie den folgenden Code, um die
+Daten aufzuteilen.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(ISLR)}
+\KeywordTok{library}\NormalTok{(caret)}
+\NormalTok{uin =}\StringTok{ }\DecValTok{123456789}
+\KeywordTok{set.seed}\NormalTok{(uin)}
+\NormalTok{oj_idx =}\StringTok{ }\KeywordTok{createDataPartition}\NormalTok{(OJ}\OperatorTok{$}\NormalTok{Purchase, }\DataTypeTok{p =} \FloatTok{0.5}\NormalTok{, }\DataTypeTok{list =} \OtherTok{FALSE}\NormalTok{)}
+\NormalTok{oj_trn =}\StringTok{ }\NormalTok{OJ[oj_idx,]}
+\NormalTok{oj_tst =}\StringTok{ }\NormalTok{OJ[}\OperatorTok{-}\NormalTok{oj_idx,]}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{(a)} Stimmen Sie ein SVM mit linearem Kernel mit 5-facher
+Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende
+Wertgitter für \texttt{C}. Berichten Sie die gewählten Werte aller
+Tuningparameter + Testgenauigkeit.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lin_grid =}\StringTok{ }\KeywordTok{expand.grid}\NormalTok{(}\DataTypeTok{C =} \KeywordTok{c}\NormalTok{(}\DecValTok{2} \OperatorTok{^}\StringTok{ }\NormalTok{(}\OperatorTok{-}\DecValTok{5}\OperatorTok{:}\DecValTok{5}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{(b)} Abstimmung eines SVM mit Polynomkern auf die Trainingsdaten
+mittels 5-facher Cross-Validierung. Geben Sie kein Tuning-Grid an.
+(\texttt{caret} wird einen für Sie erstellen.) Berichten Sie die
+gewählten Werte aller Tuning-Parameter. Berichten Sie über die
+Genauigkeit der Testdaten.
+
+\textbf{(c)} Stimmen Sie ein SVM mit Radialkernel mit 5-facher
+Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende
+Wertgitter für \texttt{C} und \texttt{sigma}. Berichten Sie die
+gewählten Werte aller Tuningparameter. Berichten Sie über die
+Genauigkeit der Testdaten.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rad_grid =}\StringTok{ }\KeywordTok{expand.grid}\NormalTok{(}\DataTypeTok{C =} \KeywordTok{c}\NormalTok{(}\DecValTok{2} \OperatorTok{^}\StringTok{ }\NormalTok{(}\OperatorTok{-}\DecValTok{2}\OperatorTok{:}\DecValTok{3}\NormalTok{)), }\DataTypeTok{sigma  =} \KeywordTok{c}\NormalTok{(}\DecValTok{2} \OperatorTok{^}\StringTok{ }\NormalTok{(}\OperatorTok{-}\DecValTok{3}\OperatorTok{:}\DecValTok{1}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{(d)} Stimmen Sie einen Random Forest mit einer 5-fachen
+Kreuzvalidierung ab. Berichten Sie die gewählten Werte aller
+Tuningparameter. Berichten Sie über die Genauigkeit der Testdaten.
+
+\textbf{(e)} Fassen Sie die obigen Genauigkeiten zusammen. Welche
+Methode hat am besten funktioniert? Warum?
+
+\hypertarget{aufgabe-2}{%
+\section{Aufgabe 2}\label{aufgabe-2}}
+
+\textbf{{[}10 points{]}} Verwenden Sie für diese Frage die Daten in
+\texttt{clust\_data.csv}. Wir werden versuchen, diese Daten mit
+\(k\)-means zu bündeln. Aber, welche \(k\) sollen wir verwenden?
+
+\textbf{(a)} Wenden Sie \(k\)-means 15 mal auf diese Daten an, wobei Sie
+die Anzahl der Zentren von 1 bis 15 verwenden. Verwenden Sie jedes Mal
+\texttt{nstart\ =\ 10} und speichern Sie den Wert \texttt{tot.withinss}
+aus dem resultierenden Objekt. (Hinweis: Schreiben Sie eine
+for-Schleife.) Die \texttt{tot.withinss} misst, wie variabel die
+Beobachtungen innerhalb eines Clusters sind, das wir gerne niedrig
+halten würden. Offensichtlich wird dieser Wert also mit mehr Zentren
+niedriger sein, egal wie viele Cluster es wirklich gibt. Zeichne diesen
+Wert gegen die Anzahl der Zentren auf. Suchen Sie nach einem
+``Ellenbogen'', der Anzahl der Zentren, in denen die Verbesserung
+plötzlich wegfällt. Basierend auf dieser Darstellung, wie viele Cluster
+sollten Ihrer Meinung nach für diese Daten verwendet werden?
+
+\textbf{(b)} Wenden Sie \(k\)-means für die von Ihnen gewählte Anzahl
+von Zentren erneut an. Wie viele Beobachtungen werden in jedem Cluster
+platziert? Was ist der Wert von \texttt{tot.withinss}?
+
+\textbf{(c)} Visualisieren Sie diese Daten. Plotten Sie die Daten mit
+den ersten beiden Variablen und färben Sie die Punkte entsprechend des
+\(k\)-means clusterings. Basierend auf diesem Plot, denken Sie, dass Sie
+eine gute Wahl für die Anzahl der Zentren getroffen haben? (Kurze
+Erklärung.)
+
+\textbf{(d)} Verwenden Sie PCA, um diese Daten zu visualisieren. Plotten
+Sie die Daten mit den ersten beiden Hauptkomponenten und färben Sie die
+Punkte entsprechend dem \(k\)-means Clustering. Basierend auf diesem
+Plot, denken Sie, dass Sie eine gute Wahl für die Anzahl der Zentren
+getroffen haben? (Kurze Erklärung.)
+
+\textbf{(e)} Berechnen Sie den Anteil der Variation, der durch die
+Hauptkomponenten erklärt wird. Machen Sie eine Darstellung des
+kumulierten Anteils erklärt. Wie viele Hauptkomponenten sind notwendig,
+um 95\% der Variation der Daten zu erklären?
+
+\hypertarget{aufgabe-3}{%
+\section{Aufgabe 3}\label{aufgabe-3}}
+
+\textbf{{[}10 points{]}} Für diese Frage werden wir auf die
+\texttt{USArrests} Daten aus den Notizen zurückkommen. (Dies ist ein
+Standarddatensatz von \texttt{R}.)
+
+\textbf{(a)} Führen Sie hierarchisches Clustering sechsmal durch.
+Berücksichtigen Sie alle möglichen Kombinationen von Verknüpfungen
+(Average, Single, Complete) und Datenskalierung. (Skaliert, Nicht
+skaliert.)
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule
+Linkage & Scaling\tabularnewline
+\midrule
+\endhead
+Single & No\tabularnewline
+Average & No\tabularnewline
+Complete & No\tabularnewline
+Single & Yes\tabularnewline
+Average & Yes\tabularnewline
+Complete & Yes\tabularnewline
+\bottomrule
+\end{longtable}
+
+Schneiden Sie das Dendrogramm jedes Mal auf eine Höhe, die zu vier
+verschiedenen Clustern führt. Plotten Sie die Ergebnisse mit einer Farbe
+für jeden Cluster.
+
+\textbf{(b)} Basierend auf den obigen Plots, erscheint eines der
+Ergebnisse nützlicher als die anderen? (Es gibt hier keine richtige
+Antwort.) Wählen Sie Ihren Favoriten. (Nochmals, keine richtige
+Antwort.)
+
+\textbf{(c)} Verwenden Sie die Dokumentation zu \texttt{?hclust}, um
+weitere mögliche Verknüpfungen zu finden. Such dir einen aus und
+probiere ihn aus. Vergleichen Sie die Ergebnisse mit Ihren Favoriten von
+\textbf{(b)}. Ist es anders?
+
+\textbf{(d)} Verwenden Sie die Dokumentation zu \texttt{?dist}, um
+andere mögliche Entfernungsmessungen zu finden. (Wir haben
+\texttt{euklidisch} verwendet.) Wählen Sie eine (nicht \texttt{binär})
+und versuchen Sie es. Vergleichen Sie die Ergebnisse mit Ihren Favoriten
+von \textbf{(b)}. Ist es anders?
+
+
+\end{document}
