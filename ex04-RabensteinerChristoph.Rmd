@@ -29,17 +29,27 @@ oj_tst = OJ[-oj_idx,]
 
 **(a)** Stimmen Sie ein SVM mit linearem Kernel mit 5-facher Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende Wertgitter für `C`. Berichten Sie die gewählten Werte aller Tuningparameter + Testgenauigkeit.
 
+Die Tabelle besteht aus 18 Features. Die Variable `Purchase` gilt es mit den 17 übrigen Prädiktoren zu bestimmen. Die Variable `Purchase`ist ein Factor mit zwei verschiedenen Werten: deshalb verwenden wir hier Klassifikationsmodelle für unsere Vorhersagen.
+Struktur der Tabelle:
+```{r, echo=FALSE}
+str(OJ)
+```
+
+Wertgitter für `C`
 ```{r, echo=T}
 lin_grid = expand.grid(C = c(2 ^ (-5:5)))
+```
 
-
-#5-fache Cross-Validierung
+5-fache Kreuzvalidierung:
+```{r, echo=T}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
                      summaryFunction=twoClassSummary,
                      classProbs=TRUE)
+```
 
-
+Modeltraining mit obenbeschriebenen Wertgitter für 'C'
+```{r, echo=T}
 svm.tune1 <- train(Purchase~.,data=oj_trn,
                     method = "svmLinear",
                     preProc = c("center","scale"),
@@ -48,64 +58,83 @@ svm.tune1 <- train(Purchase~.,data=oj_trn,
                     trControl=ctrl)	
 
 PredictTest1 = predict(svm.tune1,oj_tst)
+```
 
-#Testgenauigkeit
-confusionMatrix(PredictTest1,oj_tst$Purchase)
+Das oben errechnete Model hat eine Genauigkeit von 83,52%. 
+Ausgabe der Confusion Matrix:
+```{r, echo=F}
+svm1 <- confusionMatrix(PredictTest1,oj_tst$Purchase)
+svm1
+```
 
+Ausgabe der Tuningsparameter:
+```{r, echo=F}
 #Tuningparameter
 svm.tune1
-
-Accurarcy(PredictTest1, oj_tst$Purchase)
 ```
-```{r}
-#Da der Tuningparameter auf den Rand geht, erweitern wir den Bereich nach unten:
-lin_grid = expand.grid(C = c(2 ^ (-10:1)))
 
-ctrl <- trainControl(method="repeatedcv",
-                     repeats=5,	
-                     summaryFunction=twoClassSummary,
-                     classProbs=TRUE)
+**Off Topic** Da der Tuningsparameter auf den Rand geht, erweitern wir den Wertgitter für `C` nach unten. 
+Wertgitter für `C`
+```{r, echo=T}
+lin_grid2 = expand.grid(C = c(2 ^ (-10:1)))
+```
 
-
+Modelltraining und Testen mit dem geänderten Wertegitter:
+```{r, echo=T}
 svm.tune2 <- train(Purchase~.,data=oj_trn,
                     method = "svmLinear",
                     preProc = c("center","scale"),
-                    tuneGrid = lin_grid,
+                    tuneGrid = lin_grid2,
                     metric="ROC",
                     trControl=ctrl)	
 
 PredictTest2 = predict(svm.tune2,oj_tst)
-
-#Testgenauigkeit
-confusionMatrix(PredictTest2,oj_tst$Purchase)
-
-#Tuningparameter
+```
+Das oben errechnete Model hat eine Genauigkeit von 83,15%. 
+Ausgabe der Confusion Matrix:
+```{r}
+svm2 <- confusionMatrix(PredictTest2,oj_tst$Purchase)
+svm2
+```
+Beim Ändern des Wertgitters für `C`ändert sich C von 0.03125 auf 0.0625. 
+Die Genauigkeit des Modells konnte nicht mit dem Ändern des Wertgitters nicht verbessert werden.
+Tuningsparameter:
+```{r}
 svm.tune2
 ```
 
-
-
 **(b)** Abstimmung eines SVM mit Polynomkern auf die Trainingsdaten mittels 5-facher Cross-Validierung. Geben Sie kein Tuning-Grid an. (`caret` wird einen für Sie erstellen.) Berichten Sie die gewählten Werte aller Tuning-Parameter. Berichten Sie über die Genauigkeit der Testdaten.
-```{r}
 
+5-fache Kreuzvalidierung
+```{r}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
                      summaryFunction=twoClassSummary,
                      classProbs=TRUE)
+```
 
-
+Training mit SVM mit Polynomkern
+```{r}
 svm.tune3 <- train(Purchase~.,data=oj_trn,
                     method = "svmPoly",
                     preProc = c("center","scale"),
                     metric="ROC",
                     trControl=ctrl)	
+```
 
+Modeltest:
+```{r}
 PredictTest3 = predict(svm.tune3,oj_tst)
+```
 
-#Testgenauigkeit
-confusionMatrix(PredictTest3,oj_tst$Purchase)
+Confusion Matrix:
+```{r, echo=F}
+svm3 <- confusionMatrix(PredictTest3,oj_tst$Purchase)
+svm3
+```
 
-#Tuningparameter
+Ausgabe der Tuningparameter:
+```{r, echo = F}
 svm.tune3
 ```
 
@@ -115,61 +144,113 @@ svm.tune3
 
 ```{r}
 rad_grid = expand.grid(C = c(2 ^ (-2:3)), sigma  = c(2 ^ (-3:1)))
+```
 
+5-fache Kreuzvalidierung
+```{r}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
                      summaryFunction=twoClassSummary,
                      classProbs=TRUE)
+```
 
-
+Training mit SVM mit Radialkernel
+```{r}
 svm.tune4 <- train(Purchase~.,data=oj_trn,
                     method = "svmRadial",
                     preProc = c("center","scale"),
                     tuneGrid = rad_grid,
                     metric="ROC",
                     trControl=ctrl)	
+```
 
+Modeltest
+```{r}
 PredictTest4 = predict(svm.tune4,oj_tst)
+```
 
-#Testgenauigkeit
-confusionMatrix(PredictTest4,oj_tst$Purchase)
+Confusion Matrix
+```{r, echo=F}
+svm4 <- confusionMatrix(PredictTest4,oj_tst$Purchase)
+svm4
+```
 
-#Tuningparameter
+Ausgabe der Tuningparameter:
+```{r, echo=F}
 svm.tune4
 ```
 
 **(d)** Stimmen Sie einen Random Forest mit einer 5-fachen Kreuzvalidierung ab. Berichten Sie die gewählten Werte aller Tuningparameter. Berichten Sie über die Genauigkeit der Testdaten.
+
+5-fache Kreuzvalidierung:
 ```{r}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
                      summaryFunction=twoClassSummary,
                      classProbs=TRUE)
+```
 
+Training mit Random Forest
+```{r}
 
 rf.tune <- train(Purchase~.,data=oj_trn,
                     method = "rf",
                     preProc = c("center","scale"),
                     metric="ROC",
                     trControl=ctrl)	
+```
 
+Testen des Models:
+```{r}
 PredictTest5 = predict(rf.tune,oj_tst)
+```
 
-#Testgenauigkeit
-confusionMatrix(PredictTest5,oj_tst$Purchase)
+Confusion Matrix:
+```{r,echo=F}
+rf1 <- confusionMatrix(PredictTest5,oj_tst$Purchase)
+rf1
+```
 
-#Tuningparameter
+Ausgabe derr Tuningsparameter:
+```{r,echo=F}
 rf.tune
 ```
 
 **(e)** Fassen Sie die obigen Genauigkeiten zusammen. Welche Methode hat am besten funktioniert? Warum?
-```{r}
+
+```{r,echo=F}
 Genauigkeiten <- data.frame(
-  GenauigkeitenName = c('SVM with Linear Kernel','VM with Polynomial Kernel','VM with Radial Kernel','Random Forest'), GenauigkeitenWerte = c(Accuracy(PredictTest1, oj_tst$Purchase), Accuracy(PredictTest3, oj_tst$Purchase), Accuracy(PredictTest4, oj_tst$Purchase),Accuracy(PredictTest5, oj_tst$Purchase)))
+  GenauigkeitenName = c('SVM with Linear Kernel','SVM with Polynomial Kernel','SVM with Radial Kernel','Random Forest'), 
 
-Genauigkeiten
-
+  GenauigkeitenTest = c(Accuracy(PredictTest1, oj_tst$Purchase), 
+                         Accuracy(PredictTest3, oj_tst$Purchase), 
+                         Accuracy(PredictTest4, oj_tst$Purchase),
+                         Accuracy(PredictTest5, oj_tst$Purchase)),
+  SensitivityTest = c(svm1$byClass['Sensitivity'],
+                      svm3$byClass['Sensitivity'],
+                      svm4$byClass['Sensitivity'],
+                      rf1$byClass['Sensitivity']),
+  SpecificityTest = c(svm1$byClass['Specificity'],
+                      svm3$byClass['Specificity'],
+                      svm4$byClass['Specificity'],
+                      rf1$byClass['Specificity']) , 
+  PrecisionTest = c(svm1$byClass['Precision'],
+                      svm3$byClass['Precision'],
+                      svm4$byClass['Precision'],
+                      rf1$byClass['Precision'])                   
+)
+  
+colnames(Genauigkeiten) <- c('Model', 'Accuracy (Test)', 'Sensitivity','Specificity','Precision')
+svm1$byClass['Sensitivity']
+svm1$byClass['Precision']
+svm1$byClass
 ```
 
+Zusammenfassung Genauigkeiten:
+```{r, echo=False}
+Genauigkeiten
+```
+Beim Vergleich der obigen Modelle fällt auf, dass die SVM mit Polynomial Kernel am besten abschneidet. Nicht nur die Genauigkeit beim Testen ist am höchsten, sondern auch die `Sensitivity`(Percentage of positive instances out of the total acutal positive instances), `Specificity` (Percentage of negative instances out of the total acutal negative instances) und `Precision`(Percentage of positive instances out of the total predicted positive instances). In den jeweiligen Confusion Matrizen stehen noch weitere Werte zum Vergleich.
 
 # Aufgabe 2
 
@@ -191,6 +272,11 @@ mydata[i,1] <- i
 }
 
 plot(mydata)
+
+```
+
+
+```{r, eval=F}
 # Hinweis, wie man Daten clustern könnte - Domainen-Wissen fehlt aber.
 # cluster mit 4 center vorteilhaft, also in der Beuge. Nur hinweis auf mögliche Cluster
 ```
