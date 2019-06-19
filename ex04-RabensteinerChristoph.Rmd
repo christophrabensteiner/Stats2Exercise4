@@ -2,6 +2,9 @@
 title: "Übung 04"
 author: "Algorithmik und Statistik 2 LAB, SS2019"
 date: 'Bis: Sonntag, 23. Juni 2019, 23:59 Uhr'
+output:
+  html_document:
+    df_print: paged
 urlcolor: cyan
 ---
 
@@ -16,10 +19,17 @@ Bitte um Beachtung der [Übungs-Policy](https://weblearn.fh-kufstein.ac.at/mod/p
 
 **[10 points]** Für diese Frage verwenden wir die `OJ`Daten aus dem `ISLR`-Paket. Wir werden versuchen, die Variable "Purchase" vorherzusagen. Nachdem Sie `uin` zu Ihrem `UIN` geändert haben, verwenden Sie den folgenden Code, um die Daten aufzuteilen.
 
-```{r, message = FALSE, warning = FALSE}
+```{r, echo=F, message = FALSE, warning = FALSE}
 library(ISLR)
 library(caret)
 library(MLmetrics)
+library(stats)
+library(cluster)
+library(dendextend)
+library(randomForest)
+```
+
+```{r}
 uin = 1810837995
 set.seed(uin)
 oj_idx = createDataPartition(OJ$Purchase, p = 0.5, list = FALSE)
@@ -30,6 +40,8 @@ oj_tst = OJ[-oj_idx,]
 **(a)** Stimmen Sie ein SVM mit linearem Kernel mit 5-facher Cross-Validierung auf die Trainingsdaten ab. Verwenden Sie das folgende Wertgitter für `C`. Berichten Sie die gewählten Werte aller Tuningparameter + Testgenauigkeit.
 
 Die Tabelle besteht aus 18 Features. Die Variable `Purchase` gilt es mit den 17 übrigen Prädiktoren zu bestimmen. Die Variable `Purchase`ist ein Factor mit zwei verschiedenen Werten: deshalb verwenden wir hier Klassifikationsmodelle für unsere Vorhersagen.
+
+
 Struktur der Tabelle:
 ```{r, echo=FALSE}
 str(OJ)
@@ -55,17 +67,21 @@ svm.tune1 <- train(Purchase~.,data=oj_trn,
                     preProc = c("center","scale"),
                     tuneGrid = lin_grid,
                     metric="ROC",
+                    importance = T,
                     trControl=ctrl)	
-
+```
+Testen des Models:
+```{r}
 PredictTest1 = predict(svm.tune1,oj_tst)
 ```
 
-Das oben errechnete Model hat eine Genauigkeit von 83,52%. 
+Das oben errechnete Model hat eine Genauigkeit von über 83%. 
 Ausgabe der Confusion Matrix:
 ```{r, echo=F}
 svm1 <- confusionMatrix(PredictTest1,oj_tst$Purchase)
 svm1
 ```
+
 
 Ausgabe der Tuningsparameter:
 ```{r, echo=F}
@@ -87,7 +103,10 @@ svm.tune2 <- train(Purchase~.,data=oj_trn,
                     tuneGrid = lin_grid2,
                     metric="ROC",
                     trControl=ctrl)	
+```
 
+Testen des Models:
+```{r}
 PredictTest2 = predict(svm.tune2,oj_tst)
 ```
 Das oben errechnete Model hat eine Genauigkeit von 83,15%. 
@@ -96,7 +115,7 @@ Ausgabe der Confusion Matrix:
 svm2 <- confusionMatrix(PredictTest2,oj_tst$Purchase)
 svm2
 ```
-Beim Ändern des Wertgitters für `C`ändert sich C von 0.03125 auf 0.0625. 
+Beim Ändern des Wertgitters für `C`ändert sich C von 0.03125 auf 0.03125. 
 Die Genauigkeit des Modells konnte nicht mit dem Ändern des Wertgitters nicht verbessert werden.
 Tuningsparameter:
 ```{r}
@@ -105,7 +124,7 @@ svm.tune2
 
 **(b)** Abstimmung eines SVM mit Polynomkern auf die Trainingsdaten mittels 5-facher Cross-Validierung. Geben Sie kein Tuning-Grid an. (`caret` wird einen für Sie erstellen.) Berichten Sie die gewählten Werte aller Tuning-Parameter. Berichten Sie über die Genauigkeit der Testdaten.
 
-5-fache Kreuzvalidierung
+5-fache Kreuzvalidierung:
 ```{r}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
@@ -113,7 +132,7 @@ ctrl <- trainControl(method="repeatedcv",
                      classProbs=TRUE)
 ```
 
-Training mit SVM mit Polynomkern
+Training mit SVM mit Polynomkern:
 ```{r}
 svm.tune3 <- train(Purchase~.,data=oj_trn,
                     method = "svmPoly",
@@ -122,7 +141,7 @@ svm.tune3 <- train(Purchase~.,data=oj_trn,
                     trControl=ctrl)	
 ```
 
-Modeltest:
+Testen des Models:
 ```{r}
 PredictTest3 = predict(svm.tune3,oj_tst)
 ```
@@ -146,7 +165,7 @@ svm.tune3
 rad_grid = expand.grid(C = c(2 ^ (-2:3)), sigma  = c(2 ^ (-3:1)))
 ```
 
-5-fache Kreuzvalidierung
+5-fache Kreuzvalidierung:
 ```{r}
 ctrl <- trainControl(method="repeatedcv",
                      repeats=5,	
@@ -154,7 +173,7 @@ ctrl <- trainControl(method="repeatedcv",
                      classProbs=TRUE)
 ```
 
-Training mit SVM mit Radialkernel
+Training mit SVM mit Radialkernel:
 ```{r}
 svm.tune4 <- train(Purchase~.,data=oj_trn,
                     method = "svmRadial",
@@ -164,12 +183,12 @@ svm.tune4 <- train(Purchase~.,data=oj_trn,
                     trControl=ctrl)	
 ```
 
-Modeltest
+Testen des Models:
 ```{r}
 PredictTest4 = predict(svm.tune4,oj_tst)
 ```
 
-Confusion Matrix
+Confusion Matrix:
 ```{r, echo=F}
 svm4 <- confusionMatrix(PredictTest4,oj_tst$Purchase)
 svm4
@@ -190,14 +209,20 @@ ctrl <- trainControl(method="repeatedcv",
                      classProbs=TRUE)
 ```
 
-Training mit Random Forest
+Training mit Random Forest:
 ```{r}
-
 rf.tune <- train(Purchase~.,data=oj_trn,
                     method = "rf",
                     preProc = c("center","scale"),
                     metric="ROC",
+                    importance = T,
                     trControl=ctrl)	
+
+```
+
+Die wichtigsten Variablen für Random Forest sind folgende:
+```{r}
+varImp(rf.tune)
 ```
 
 Testen des Models:
@@ -241,13 +266,10 @@ Genauigkeiten <- data.frame(
 )
   
 colnames(Genauigkeiten) <- c('Model', 'Accuracy (Test)', 'Sensitivity','Specificity','Precision')
-svm1$byClass['Sensitivity']
-svm1$byClass['Precision']
-svm1$byClass
 ```
 
-Zusammenfassung Genauigkeiten:
-```{r, echo=False}
+Zusammenfassung der Genauigkeiten:
+```{r, echo=FALSE}
 Genauigkeiten
 ```
 Beim Vergleich der obigen Modelle fällt auf, dass die SVM mit Polynomial Kernel am besten abschneidet. Nicht nur die Genauigkeit beim Testen ist am höchsten, sondern auch die `Sensitivity`(Percentage of positive instances out of the total acutal positive instances), `Specificity` (Percentage of negative instances out of the total acutal negative instances) und `Precision`(Percentage of positive instances out of the total predicted positive instances). In den jeweiligen Confusion Matrizen stehen noch weitere Werte zum Vergleich.
@@ -255,9 +277,9 @@ Beim Vergleich der obigen Modelle fällt auf, dass die SVM mit Polynomial Kernel
 # Aufgabe 2
 
 **[10 points]** Verwenden Sie für diese Frage die Daten in `clust_data.csv`. Wir werden versuchen, diese Daten mit $k$-means zu bündeln. Aber, welche $k$ sollen wir verwenden?
-```{r}
+```{r, results="hide"}
 clust = read.csv('clust_data.csv')
-str(clust)
+scale(clust)
 ```
 
 
@@ -271,52 +293,65 @@ mydata[i,2] <- clusters$tot.withinss
 mydata[i,1] <- i
 }
 
-plot(mydata)
-
+plot(mydata, main='Clustering - Wert von tot.withniss nach den Centers')
 ```
 
 
-```{r, eval=F}
-# Hinweis, wie man Daten clustern könnte - Domainen-Wissen fehlt aber.
-# cluster mit 4 center vorteilhaft, also in der Beuge. Nur hinweis auf mögliche Cluster
-```
 
 **(b)** Wenden Sie $k$-means für die von Ihnen gewählte Anzahl von Zentren erneut an. Wie viele Beobachtungen werden in jedem Cluster platziert? Was ist der Wert von `tot.withinss`?
-```{r}
+```{r, echo=T}
 km.out = kmeans(clust,centers=4,nstart=10)
-km.out$withinss
-plot(km.out$withinss)
+```
+
+Wert von `tot.withinss`
+```{r, echo=F}
 km.out$tot.withinss
 ```
+
 **(c)** Visualisieren Sie diese Daten. Plotten Sie die Daten mit den ersten beiden Variablen und färben Sie die Punkte entsprechend des $k$-means clusterings. Basierend auf diesem Plot, denken Sie, dass Sie eine gute Wahl für die Anzahl der Zentren getroffen haben? (Kurze Erklärung.)
-```{r}
-ggplot(data.frame(clust), aes(clust[,1], clust[,2], color = km.out$cluster)) + geom_point()
+```{r,echo=F}
+plot1 <-ggplot(data.frame(clust), aes(clust[,1], clust[,2], color = km.out$cluster)) + geom_point()
+plot1 + scale_color_continuous(low='red', high = 'green')
 ```
+Die Zentren sind mit 4 am eindeutigsten. Bei höheren/mehreren Zentren gibt es keine allzugroße Verbesserung. 
+
 **(d)** Verwenden Sie PCA, um diese Daten zu visualisieren. Plotten Sie die Daten mit den ersten beiden Hauptkomponenten und färben Sie die Punkte entsprechend dem $k$-means Clustering. Basierend auf diesem Plot, denken Sie, dass Sie eine gute Wahl für die Anzahl der Zentren getroffen haben? (Kurze Erklärung.)
-```{r}
+
+Berechung PCA:
+```{r, results="hide"}
 clust.pca <- prcomp(clust,
-                    center = TRUE,
-                    scale = TRUE)
+                    center = T,
+                    scale = T)
 
-plot(clust.pca, type = "l")
+```
+ 
+Variances:
+```{r, echo=F}
+plot(clust.pca, type = "l", main='Variances')
+```
+
+```{r, results="hide"}
 predict(clust.pca, newdata = tail(clust,2))
+```
 
-plot(clust.pca$x[,1:2], col = km.out$cluster)
-
+Ausgabe PCA-Plot:
+```{r,echo=FALSE}
+#plot(clust.pca$x[,1:2], col = km.out$cluster)
 ggplot(data.frame(clust), aes(clust.pca$x[,1], clust.pca$x[,2], color = km.out$cluster)) + geom_point()
 ```
+Die Zahl der Zentren (=4) ist hier gut getroffen, da die Daten sehr gut klassifiziert werden können.
+
 **(e)** Berechnen Sie den Anteil der Variation, der durch die Hauptkomponenten erklärt wird. Machen Sie eine Darstellung des kumulierten Anteils erklärt. Wie viele Hauptkomponenten sind notwendig, um 95% der Variation der Daten zu erklären?
-```{r}
+```{r, echo=F}
 summary(clust.pca)
 ```
-
-
+Die ersten vier PC erklären nur 40%. Um 95% der Hauptkomponenten erklären zu können, braucht es insgesamt 37 PC.
 
 # Aufgabe 3
 
 **[10 points]** Für diese Frage werden wir auf die `USArrests` Daten aus den Notizen zurückkommen. (Dies ist ein Standarddatensatz von `R`.)
-```{r}
-USArrests
+```{r, echo=FALSE}
+str(USArrests)
 ```
 **(a)** Führen Sie hierarchisches Clustering sechsmal durch. Berücksichtigen Sie alle möglichen Kombinationen von Verknüpfungen (Average, Single, Complete) und Datenskalierung. (Skaliert, Nicht skaliert.)
 
@@ -329,30 +364,164 @@ USArrests
 | Average  | Yes     |
 | Complete | Yes     |
 
+
 Schneiden Sie das Dendrogramm jedes Mal auf eine Höhe, die zu vier verschiedenen Clustern führt. Plotten Sie die Ergebnisse mit einer Farbe für jeden Cluster.
+
+**unskalierte Daten**
+Distanzmatrix: Euklidische Distanz // unskalierte Daten
 ```{r}
-x = USArrests
-#standardize <- function(x){(x-min(x))/(max(x)-min(x))}
-scale(x)
-str(x)
-
-dist_mat <- dist(x, method = 'euclidean')
-hclust_avg <- hclust(dist_mat, method = 'average')
-
-cut_avg <- cutree(hclust_avg, k = 4)
-plot(hclust_avg)
-rect.hclust(hclust_avg, k=4)
-abline(h = 3, col = 'red')
+df1 <- na.omit(USArrests)
+dist_mat <- dist(df1, method = 'euclidean')
 ```
+
+*1)* Linkage: Single | Scaling: No
+```{r}
+hc_single_scaling_no <- hclust(dist_mat, method = 'single')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+single_dend_obj <- as.dendrogram(hc_single_scaling_no)
+single_col_dend <- color_branches(single_dend_obj, k = 4)
+plot(single_col_dend, main="Hierarchisches Clustern: Single-Linkage und unskaliert ")
+```
+
+*2)* Linkage: Average | Scaling: No
+```{r}
+hc_average_scaling_no <- hclust(dist_mat, method = 'average')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+average_dend_obj <- as.dendrogram(hc_average_scaling_no)
+average_col_dend <- color_branches(average_dend_obj, k = 4)
+plot(average_col_dend,main="Hierarchisches Clustern: Average-Linkage und unskaliert ")
+```
+
+*3)* Linkage: Complete | Scaling: No
+```{r}
+hc_complete_scaling_no <- hclust(dist_mat, method = 'complete')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+complete_dend_obj <- as.dendrogram(hc_complete_scaling_no)
+complete_col_dend <- color_branches(complete_dend_obj, k = 4)
+plot(complete_col_dend,main="Hierarchisches Clustern: Complete-Linkage und unskaliert ")
+```
+
+**skalierte Daten**
+
+Distanzmatrix: Euklidische Distanz // skalierte Daten
+```{r}
+df2 <- scale(na.omit(USArrests))
+dist_mat2 <- dist(df2, method = 'euclidean')
+```
+
+*4)* Linkage: Single | Scaling: Yes
+```{r}
+hc_single_scaling_yes <- hclust(dist_mat2, method = 'single')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+single_dend_obj_scaled <- as.dendrogram(hc_single_scaling_yes)
+single_col_dend_scaled <- color_branches(single_dend_obj_scaled, k = 4)
+plot(single_col_dend_scaled, main="Hierarchisches Clustern: Single-Linkage und skaliert ")
+```
+
+*5)* Linkage: Average | Scaling: Yes
+```{r}
+hc_average_scaling_yes <- hclust(dist_mat2, method = 'average')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+average_dend_obj_scaled <- as.dendrogram(hc_average_scaling_yes)
+average_col_dend_scaled <- color_branches(average_dend_obj_scaled, k = 4)
+plot(average_col_dend_scaled,main="Hierarchisches Clustern: Average-Linkage und skaliert")
+```
+
+*6)* Linkage: Complete | Scaling: Yes
+```{r}
+hc_complete_scaling_yes <- hclust(dist_mat2, method = 'complete')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+complete_dend_obj_scaled <- as.dendrogram(hc_complete_scaling_yes)
+complete_col_dend_scaled <- color_branches(complete_dend_obj_scaled, k = 4)
+plot(complete_col_dend_scaled,main="Hierarchisches Clustern: Complete-Linkage und skaliert ")
+```
+
 **(b)** Basierend auf den obigen Plots, erscheint eines der Ergebnisse nützlicher als die anderen? (Es gibt hier keine richtige Antwort.) Wählen Sie Ihren Favoriten. (Nochmals, keine richtige Antwort.)
-```{r}
 
-```
+Welcher Plot am sinnvollsten ist, hängt vom Anwendungsfall ab:
+Complete-Linkage misst den maximalen Abstand vor dem clustern, der single-Linkage berechnet den minimalsten Abstand vor dem clustern. Beim Single-Linkage können so Outliers gesichtet werden. Welche die richtige Linkage-Methode ist, hängt vom Anwendungsfall ab, deshalb gibt es keine richtige oder falsche Methode. Ich würde hier die Complete-Linkage mit skalierten Daten bevorzugen, da diese die Daten am ehesten gut trennt.
+
 **(c)** Verwenden Sie die Dokumentation zu `?hclust`, um weitere mögliche Verknüpfungen zu finden. Such dir einen aus und probiere ihn aus. Vergleichen Sie die Ergebnisse mit Ihren Favoriten von **(b)**. Ist es anders?
+
 ```{r}
+hc_centroid_scaling_yes <- hclust(dist_mat2, method = 'centroid')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+centroid_dend_obj_scaled <- as.dendrogram(hc_centroid_scaling_yes)
+centroid_col_dend_scaled <- color_branches(hc_centroid_scaling_yes, k = 4)
+plot(centroid_col_dend_scaled,main="Centroid Clustern: Average-Linkage und skaliert")
 
 ```
+Eine weitere Methode ist z.B.: die `centroid-linkage`: Sie sucht den Schwerpunkt von den jeweiligen Clustern (in unseren Beispiel 4) und berechnet die Distanz davon vor dem Zusammenführen.  Beim Plotten mit fällt sofort auf, dass die Ergebnisse nicht mehr `geordnet`sind, wie bei den obigen Plots, sondern graphish `wild durcheinander laufen`.
+
 **(d)** Verwenden Sie die Dokumentation zu `?dist`, um andere mögliche Entfernungsmessungen zu finden. (Wir haben `euklidisch` verwendet.) Wählen Sie eine (nicht `binär`) und versuchen Sie es. Vergleichen Sie die Ergebnisse mit Ihren Favoriten von **(b)**. Ist es anders?
 ```{r}
-
+dist_mat3 <- dist(df2, method = 'manhattan')
 ```
+
+Linkage: Complete | Scaling: Yes
+```{r}
+hc_complete_scaling_yes_2 <- hclust(dist_mat3, method = 'complete')
+```
+
+```{r, echo=F}
+graphics.off()
+options(scipen=999)
+```
+Dendrogramm mit vier verschiedenen Clustern: 
+```{r, echo=F}
+complete_dend_obj_scaled <- as.dendrogram(hc_complete_scaling_yes_2)
+complete_col_dend_scaled <- color_branches(complete_dend_obj_scaled, k = 4)
+plot(complete_col_dend_scaled,main="Hierarchisches Clustern: Complete-Linkage, skaliert und Manhattan-Dist.")
+```
+
+Verglichen mit der Complete-Linkage, skaliert und euklidischer Distanz erhalten wir wieder neue vier Cluster mit unterschiedlichen Werten bei der Verwendung der Manhattan-Distanz.
